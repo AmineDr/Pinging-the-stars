@@ -53,8 +53,8 @@ class Window(tk.ThemedTk):
         self.neighbours = []
 
         try:
-            with open('save', 'rb') as f:
-                save = f.read()
+            with open('save', 'rb') as file:
+                save = file.read()
                 c = AESCipher(self.host)
                 decrypted = c.decrypt(save).split(' ')
                 self.refreshRate = int(decrypted[0])
@@ -123,9 +123,17 @@ class Window(tk.ThemedTk):
         self.ispLabel = ttk.Label(text="N/A")
         self.ispLabel.place(x=150, y=360)
 
-        ttk.Label(text="DNS Info\n------------------------------------------------").place(x=30, y=400)
+        ttk.Label(text="WAN gateway").place(x=30, y=390)
+        self.wanLabel = ttk.Label(text="N/A")
+        self.wanLabel.place(x=150, y=390)
+
+        ttk.Label(text="BGP gateway").place(x=30, y=420)
+        self.bgpLabel = ttk.Label(text="N/A")
+        self.bgpLabel.place(x=150, y=420)
+
+        ttk.Label(text="DNS server").place(x=30, y=450)
         self.dnsServerLabel = ttk.Label(text="N/A")
-        self.dnsServerLabel.place(x=30, y=430)
+        self.dnsServerLabel.place(x=150, y=450)
 
         self.hostFrame = ttk.Frame()
         self.hostEntry = ttk.Entry(self.hostFrame)
@@ -403,6 +411,20 @@ class Window(tk.ThemedTk):
                     self.apLabel.config(text="???")
                     self.log("[-] Host not responding, Connection dropped!")
 
+    def wan_gateway(self):
+        for x in range(1, 28):
+            pkt = IP(dst=self.host, ttl=x) / UDP(dport=33434)
+            reply = sr1(pkt, verbose=0)
+            if x == 2:
+                return reply.src
+
+    def bgp_gateway(self):
+        for x in range(1, 28):
+            pkt = IP(dst=self.host, ttl=x) / UDP(dport=33434)
+            reply = sr1(pkt, verbose=0)
+            if x == 3:
+                return reply.src
+
     def check_connection(self):
         while True:
             self.dropsLabel.config(text="Drops : {} times".format(self.drops))
@@ -417,6 +439,7 @@ class Window(tk.ThemedTk):
                     self.localIP = s.getsockname()[0]
                 self.localLabel.config(text=self.localIP)
                 ip = requests.get("https://api.ipify.org").text
+                self.connected = True
                 if ip != self.publicIP and not self.firstTime:
                     self.log("[*] Public IP changed from {} to {}".format(self.publicIP, ip))
                 self.publicIP = ip
@@ -424,14 +447,15 @@ class Window(tk.ThemedTk):
                 cmd = Popen(["nslookup", '/h'], shell=True, stdin=PIPE, stderr=PIPE, stdout=PIPE)
                 data = cmd.stdout.read().decode().strip()
                 data = data.split(' ')
-                self.dnsServerLabel.config(text="DNS server : "+data[4])
+                self.dnsServerLabel.config(text=data[4])
                 self.checkConLabel.config(bg="#0f0", text="Connected to internet")
                 data = json.loads(requests.get("https://api.iplocation.net/?ip={}".format(self.publicIP)).text)
                 self.ispLabel.config(text=data["isp"])
                 self.countryLabel.config(text=data["country_name"]+", "+data["country_code2"])
+                self.bgpLabel.config(text=self.bgp_gateway())
                 if not self.connected:
                     self.log("[+] Connected to internet.")
-                self.connected = True
+                self.wanLabel.config(text=self.wan_gateway())
                 self.firstTime = False
             except:
                 self.checkConLabel.config(bg="#f00", text="No internet")
