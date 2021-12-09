@@ -417,18 +417,11 @@ class Window(tk.ThemedTk):
                     self.apLabel.config(text="???")
                     self.log("[-] Host not responding, Connection dropped!")
 
-    def wan_gateway(self):
+    def outer_gateway(self, level):
         for x in range(1, 28):
             pkt = IP(dst=self.host, ttl=x) / UDP(dport=33434)
             reply = sr1(pkt, verbose=0)
-            if x == 2:
-                return reply.src
-
-    def bgp_gateway(self):
-        for x in range(1, 28):
-            pkt = IP(dst=self.host, ttl=x) / UDP(dport=33434)
-            reply = sr1(pkt, verbose=0)
-            if x == 3:
+            if x == level:
                 return reply.src
 
     def copy_clipboard(self, event):
@@ -462,10 +455,10 @@ class Window(tk.ThemedTk):
                 data = json.loads(requests.get("https://api.iplocation.net/?ip={}".format(self.publicIP)).text)
                 self.ispLabel.config(text=data["isp"])
                 self.countryLabel.config(text=data["country_name"]+", "+data["country_code2"])
-                self.bgpLabel.config(text=self.bgp_gateway())
+                self.wanLabel.config(text=self.outer_gateway(2))
+                self.bgpLabel.config(text=self.outer_gateway(3))
                 if not self.connected:
                     self.log("[+] Connected to internet.")
-                self.wanLabel.config(text=self.wan_gateway())
                 self.firstTime = False
             except:
                 self.checkConLabel.config(bg="#f00", text="No internet")
