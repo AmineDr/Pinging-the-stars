@@ -105,14 +105,17 @@ class Window(tk.ThemedTk):
 
         ttk.Label(text="Local IP").place(x=30, y=240)
         self.localLabel = ttk.Label(text="N/A")
+        self.localLabel.bind("<Button-1>", self.copy_clipboard)
         self.localLabel.place(x=150, y=240)
 
         ttk.Label(text="Gateway IP").place(x=30, y=270)
         self.gatewayLabel = ttk.Label(text="N/A")
+        self.gatewayLabel.bind("<Button-1>", self.copy_clipboard)
         self.gatewayLabel.place(x=150, y=270)
 
         ttk.Label(text="Public IP").place(x=30, y=300)
         self.publicLabel = ttk.Label(text="N/A")
+        self.publicLabel.bind("<Button-1>", self.copy_clipboard)
         self.publicLabel.place(x=150, y=300)
 
         ttk.Label(text="Country").place(x=30, y=330)
@@ -125,14 +128,17 @@ class Window(tk.ThemedTk):
 
         ttk.Label(text="WAN gateway").place(x=30, y=390)
         self.wanLabel = ttk.Label(text="N/A")
+        self.wanLabel.bind("<Button-1>", self.copy_clipboard)
         self.wanLabel.place(x=150, y=390)
 
         ttk.Label(text="BGP gateway").place(x=30, y=420)
         self.bgpLabel = ttk.Label(text="N/A")
+        self.bgpLabel.bind("<Button-1>", self.copy_clipboard)
         self.bgpLabel.place(x=150, y=420)
 
         ttk.Label(text="DNS server").place(x=30, y=450)
         self.dnsServerLabel = ttk.Label(text="N/A")
+        self.dnsServerLabel.bind("<Button-1>", self.copy_clipboard)
         self.dnsServerLabel.place(x=150, y=450)
 
         self.hostFrame = ttk.Frame()
@@ -424,6 +430,10 @@ class Window(tk.ThemedTk):
             reply = sr1(pkt, verbose=0)
             if x == 3:
                 return reply.src
+
+    def copy_clipboard(self, event):
+        self.clipboard_append(event.widget.cget("text"))
+        messagebox.showinfo("Copied!", f"{event.widget.cget('text')} was copied to clipboard")
 
     def check_connection(self):
         while True:
