@@ -1,6 +1,7 @@
 from subprocess import Popen, PIPE
 from threading import Thread
 import ctypes
+import time
 import os
 
 
@@ -14,6 +15,7 @@ class Explorer:
         self.tested = 0
         for x in range(255):
             Thread(target=self.ping_to_arp, args=(f"{prefix}{x}",)).start()
+            time.sleep(.05)
 
         while self.tested < 255:
             pass
